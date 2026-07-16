@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Hash Comparison — CynSecAnalyze{% endblock %}
+{% block content %}
+<section class="py-5 mt-4">
+  <div class="container">
+    <div class="glass-card p-4 p-md-5">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3 mb-4">
+        <div>
+          <h2 class="fw-bold mb-2">Password Hash Comparison</h2>
+          <p class="text-muted mb-0">Comparing common hashing approaches for password storage in a secure fintech context.</p>
+        </div>
+        <span class="badge bg-cyber-blue">Chart-Based Overview</span>
+      </div>
+
+      <div class="row g-4 mb-4">
+        <div class="col-lg-8">
+          <div class="glass-card p-3 h-100">
+            <h5 class="fw-bold mb-3">Security Comparison Chart</h5>
+            <div style="height: 320px;">
+              <canvas id="comparisonChart"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="glass-card p-3 h-100">
+            <h5 class="fw-bold mb-3">Legend</h5>
+            <ul class="list-unstyled small text-muted mb-0">
+              <li class="mb-2"><span class="badge bg-danger me-2">Very Weak</span>MD5 / SHA-1</li>
+              <li class="mb-2"><span class="badge bg-warning text-dark me-2">Moderate</span>SHA-256</li>
+              <li class="mb-2"><span class="badge bg-cyber-blue me-2">Strong</span>bcrypt</li>
+              <li class="mb-2"><span class="badge bg-success me-2">Very Strong</span>Argon2</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-4">
+        {% for item in comparison_data %}
+        <div class="col-12 col-md-6 col-xl-4">
+          <div class="glass-card p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h6 class="fw-bold mb-0">{{ item.name }}</h6>
+              <span class="badge bg-dark">{{ item.score }}/100</span>
+            </div>
+            <p class="small text-muted mb-2"><strong>Purpose:</strong> {{ item.purpose }}</p>
+            <p class="small text-muted mb-2"><strong>Security Level:</strong> {{ item.security_level }}</p>
+            <p class="small text-muted mb-2"><strong>Speed:</strong> {{ item.speed }}</p>
+            <p class="small text-muted mb-2"><strong>Resistance:</strong> {{ item.resistance }}</p>
+            <p class="small text-muted mb-0"><strong>Recommended Usage:</strong> {{ item.recommended }}</p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const ctx = document.getElementById('comparisonChart').getContext('2d');
+new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: [{% for item in comparison_data %}'{{ item.name }}'{% if not loop.last %}, {% endif %}{% endfor %}],
+    datasets: [{
+      label: 'Security Score',
+      data: [{% for item in comparison_data %}{{ item.score }}{% if not loop.last %}, {% endif %}{% endfor %}],
+      backgroundColor: ['rgba(220,53,69,0.8)', 'rgba(255,193,7,0.8)', 'rgba(13,202,240,0.8)', 'rgba(25,135,84,0.8)', 'rgba(0,123,255,0.8)'],
+      borderColor: ['#dc3545', '#ffc107', '#0dcaf0', '#198754', '#0d6efd'],
+      borderWidth: 2,
+      borderRadius: 6
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { beginAtZero: true, max: 100, ticks: { color: '#adb5bd' } },
+      x: { ticks: { color: '#adb5bd' } }
+    }
+  }
+});
+</script>
+{% endblock %}

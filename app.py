@@ -19,6 +19,11 @@ from modules.password_hash import (hash_password, verify_password,
                                    extract_hash_info, demo_hash_comparison,
                                    compare_algorithms)
 from modules.security_report import generate_full_report
+from modules.simulations import (
+    get_credential_stuffing_demo,
+    get_offline_cracking_demo,
+    get_hash_comparison_data,
+)
 
 # ---------------------------------------------------------------------------
 # App Configuration
@@ -360,6 +365,8 @@ def dashboard():
         strong_count=strong,
         very_strong_count=very_strong,
         mfa_enabled=mfa_on,
+        credential_stuffing_attempts=6,
+        offline_attack_simulations=2,
         security_score=security_score
     )
 
@@ -402,6 +409,44 @@ def api_hash_password():
     hashed = hash_password(password)
     info = extract_hash_info(hashed)
     return jsonify({'hash': hashed, 'info': info})
+
+
+# ── Credential Stuffing Simulator ──────────────────────────────────────────
+
+@app.route('/credential-stuffing-simulator')
+@login_required
+def credential_stuffing_simulator():
+    demo = get_credential_stuffing_demo()
+    return render_template('credential_stuffing_simulator.html',
+        demo=demo,
+        username=session['username']
+    )
+
+
+# ── Offline Password Cracking Simulator ───────────────────────────────────
+
+@app.route('/offline-password-cracking')
+@login_required
+def offline_password_cracking():
+    md5_demo = get_offline_cracking_demo('md5')
+    bcrypt_demo = get_offline_cracking_demo('bcrypt')
+    return render_template('offline_password_cracking.html',
+        md5_demo=md5_demo,
+        bcrypt_demo=bcrypt_demo,
+        username=session['username']
+    )
+
+
+# ── Password Hash Comparison ───────────────────────────────────────────────
+
+@app.route('/hash-comparison')
+@login_required
+def hash_comparison():
+    comparison_data = get_hash_comparison_data()
+    return render_template('hash_comparison.html',
+        comparison_data=comparison_data,
+        username=session['username']
+    )
 
 
 # ── Password Audit ────────────────────────────────────────────────────────────

@@ -25,11 +25,11 @@
         <div class="row g-4 mb-4">
             {% set cards = [
                 ('fa-users','text-cyber-blue','Total Users', total_users, 'bg-cyber-blue-dim'),
-                ('fa-user-plus','text-cyber-green','Registered Today', today_count, 'bg-cyber-green-dim'),
+                ('fa-user-plus','text-cyber-green','Strong Passwords', strong_count, 'bg-cyber-green-dim'),
                 ('fa-exclamation-triangle','text-danger','Weak Passwords', weak_count, 'bg-danger-dim'),
-                ('fa-shield-alt','text-success','Strong Passwords', strong_count, 'bg-success-dim'),
-                ('fa-mobile-alt','text-info','MFA Enabled', mfa_enabled, 'bg-info-dim'),
-                ('fa-tachometer-alt','text-warning','Security Score', security_score ~ '%', 'bg-warning-dim'),
+                ('fa-user-secret','text-warning','Stuffing Attempts', credential_stuffing_attempts, 'bg-warning-dim'),
+                ('fa-lock','text-info','Offline Simulations', offline_attack_simulations, 'bg-info-dim'),
+                ('fa-mobile-alt','text-success','MFA Enabled', mfa_enabled, 'bg-success-dim'),
             ] %}
             {% for icon, color, label, value, bg in cards %}
             <div class="col-6 col-md-4 col-xl-2">
