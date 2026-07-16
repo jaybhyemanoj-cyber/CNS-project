@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}MFA Verification — CynSecAnalyze{% endblock %}
+{% block content %}
+<section class="auth-section d-flex align-items-center min-vh-100 pt-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-5 col-md-7">
+                <div class="auth-card glass-card p-4 p-md-5 text-center">
+                    <div class="mfa-icon-wrap mb-3">
+                        <div class="mfa-ring"></div>
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h2 class="fw-bold mb-2">MFA Verification</h2>
+                    <p class="text-muted small mb-4">
+                        Enter the 6-digit OTP shown in the notification above.<br>
+                        <span class="text-cyber-green">(Demo mode — OTP is displayed in the flash message)</span>
+                    </p>
+
+                    <form method="POST" action="{{ url_for('mfa_verify') }}" id="mfaForm">
+                        <div class="otp-input-group mb-4">
+                            <input type="text" class="form-control cyber-input text-center otp-field"
+                                   name="otp" id="otp" placeholder="000000"
+                                   maxlength="6" inputmode="numeric" pattern="[0-9]{6}"
+                                   required autocomplete="one-time-code">
+                        </div>
+                        <button type="submit" class="btn btn-cyber w-100 btn-lg">
+                            <i class="fas fa-check-circle me-2"></i>Verify OTP
+                        </button>
+                    </form>
+
+                    <div class="mfa-flow-diagram mt-4 p-3">
+                        <div class="d-flex align-items-center justify-content-center gap-2 flex-wrap">
+                            <div class="flow-step completed"><i class="fas fa-check me-1"></i>Credentials</div>
+                            <i class="fas fa-arrow-right text-muted"></i>
+                            <div class="flow-step active"><i class="fas fa-mobile-alt me-1"></i>OTP</div>
+                            <i class="fas fa-arrow-right text-muted"></i>
+                            <div class="flow-step"><i class="fas fa-tachometer-alt me-1"></i>Dashboard</div>
+                        </div>
+                    </div>
+
+                    <div class="info-box mt-4 p-3">
+                        <p class="small text-muted mb-0">
+                            <i class="fas fa-clock me-2 text-warning"></i>
+                            OTP expires in 5 minutes. In a real system, this would be delivered via
+                            SMS, email, or an authenticator app (TOTP).
+                        </p>
+                    </div>
+
+                    <p class="mt-3 mb-0">
+                        <a href="{{ url_for('login') }}" class="text-muted small">
+                            <i class="fas fa-arrow-left me-1"></i>Back to Login
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+{% block extra_js %}
+<script>
+// Auto-format OTP input
+document.getElementById('otp').addEventListener('input', function() {
+    this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6);
+    if (this.value.length === 6) {
+        document.getElementById('mfaForm').submit();
+    }
+});
+</script>
+{% endblock %}

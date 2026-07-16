@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}Password Audit — CynSecAnalyze{% endblock %}
+{% block content %}
+<section class="pt-5 mt-4">
+    <div class="container-fluid px-4">
+        <div class="section-heading mb-4">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div>
+                    <h2 class="fw-bold"><i class="fas fa-search me-3 text-warning"></i>Controlled Password Audit</h2>
+                    <p class="text-muted mb-0">Offline audit using <strong>pre-seeded dummy/anonymized accounts only</strong>. No real user data is accessed.</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <span class="audit-badge"><i class="fas fa-shield-alt me-1"></i>Educational Mode</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Disclaimer -->
+        <div class="disclaimer-box mb-4 p-4">
+            <div class="d-flex align-items-start">
+                <i class="fas fa-exclamation-triangle text-warning me-3 mt-1" style="font-size:1.4rem;"></i>
+                <div>
+                    <h6 class="text-warning mb-1">Educational Disclaimer</h6>
+                    <p class="text-muted small mb-0">
+                        This audit compares pre-seeded <em>dummy accounts</em> (created specifically for this demonstration)
+                        against a list of commonly used weak passwords. This is an <strong>offline, read-only</strong>
+                        educational exercise. No brute-force, cracking, or unauthorized access is performed.
+                        The original passwords shown below are part of the deliberately crafted test dataset.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Audit Summary Cards -->
+        <div class="row g-4 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="kpi-card glass-card p-3 text-center">
+                    <div class="kpi-icon bg-cyber-blue-dim mb-2"><i class="fas fa-users text-cyber-blue"></i></div>
+                    <div class="kpi-value">{{ total }}</div>
+                    <div class="kpi-label text-muted small">Total Dummy Accounts</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="kpi-card glass-card p-3 text-center">
+                    <div class="kpi-icon bg-danger-dim mb-2"><i class="fas fa-exclamation-triangle text-danger"></i></div>
+                    <div class="kpi-value text-danger">{{ weak_count }}</div>
+                    <div class="kpi-label text-muted small">Weak Passwords</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="kpi-card glass-card p-3 text-center">
+                    <div class="kpi-icon bg-success-dim mb-2"><i class="fas fa-shield-alt text-success"></i></div>
+                    <div class="kpi-value text-success">{{ strong_count }}</div>
+                    <div class="kpi-label text-muted small">Strong Passwords</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="kpi-card glass-card p-3 text-center">
+                    <div class="kpi-icon bg-warning-dim mb-2"><i class="fas fa-percent text-warning"></i></div>
+                    <div class="kpi-value text-warning">{{ weak_pct }}%</div>
+                    <div class="kpi-label text-muted small">Weak Percentage</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Accounts Table -->
+        <div class="row g-4 mb-4">
+            <div class="col-12">
+                <div class="glass-card p-4">
+                    <h5 class="mb-3"><i class="fas fa-table me-2 text-cyber-blue"></i>Dummy Account Audit Results</h5>
+                    <div class="table-responsive">
+                        <table class="cyber-table table" id="auditTable">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Account Alias</th>
+                                    <th>Test Password (Demo Only)</th>
+                                    <th>Strength Level</th>
+                                    <th>Audit Result</th>
+                                    <th>Hash Preview</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for acc in dummy_accounts %}
+                                <tr class="{{ 'row-insecure' if acc.is_weak else 'row-secure' }}">
+                                    <td class="text-muted">{{ loop.index }}</td>
+                                    <td><code class="text-cyber-blue">{{ acc.alias }}</code></td>
+                                    <td>
+                                        {% if acc.is_weak %}
+                                        <code class="text-danger">{{ acc.original_password }}</code>
+                                        {% else %}
+                                        <code class="text-success">{{ acc.original_password[:4] }}••••••••</code>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% set lvl = acc.strength_level %}
+                                        {% if lvl == 'Weak' %}<span class="badge bg-danger">Weak</span>
+                                        {% elif lvl == 'Medium' %}<span class="badge bg-warning text-dark">Medium</span>
+                                        {% elif lvl == 'Strong' %}<span class="badge bg-info">Strong</span>
+                                        {% else %}<span class="badge bg-success">Very Strong</span>{% endif %}
+                                    </td>
+                                    <td>
+                                        {% if acc.is_weak %}
+                                        <span class="audit-flag text-danger"><i class="fas fa-flag me-1"></i>FLAGGED</span>
+                                        {% else %}
+                                        <span class="audit-pass text-success"><i class="fas fa-check me-1"></i>PASSED</span>
+                                        {% endif %}
+                                    </td>
+                                    <td><code class="small text-muted">{{ acc.password_hash[:20] }}…</code></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Common Passwords Reference -->
+        <div class="row g-4 mb-5">
+            <div class="col-12">
+                <div class="glass-card p-4">
+                    <h5 class="mb-1"><i class="fas fa-list me-2 text-danger"></i>Sample Common Password Reference</h5>
+                    <p class="text-muted small mb-3">These are known commonly-used weak passwords used in the audit comparison (educational reference only).</p>
+                    <div class="common-pwd-grid">
+                        {% for pwd in common_passwords %}
+                        <span class="common-pwd-tag">{{ pwd }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+{% endblock %}

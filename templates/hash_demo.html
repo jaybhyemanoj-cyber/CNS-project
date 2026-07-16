@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+{% block title %}Hash Security Demo — CynSecAnalyze{% endblock %}
+{% block content %}
+<section class="pt-5 mt-4">
+    <div class="container-fluid px-4">
+        <div class="section-heading mb-4">
+            <h2 class="fw-bold"><i class="fas fa-hashtag me-3 text-cyber-blue"></i>Password Hash Security Demo</h2>
+            <p class="text-muted">Educational demonstration — no real user passwords are shown here.</p>
+        </div>
+
+        <!-- Why Hashing -->
+        <div class="row g-4 mb-4">
+            <div class="col-12">
+                <div class="glass-card p-4">
+                    <div class="row g-4 align-items-center">
+                        <div class="col-md-8">
+                            <h5 class="text-cyber-green mb-3"><i class="fas fa-info-circle me-2"></i>Why Can't Hashes Be Reversed?</h5>
+                            <p class="text-muted mb-2">A cryptographic hash function is a <strong>one-way mathematical operation</strong>. Given a hash output, it is computationally infeasible to recover the original input without iterating through every possible input.</p>
+                            <p class="text-muted mb-0">bcrypt goes further — it uses a <strong>unique random salt</strong> per password and applies <strong>2<sup>cost</sup> iterations</strong> of Blowfish cipher, making brute-force attacks extremely slow even with modern hardware.</p>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="hash-flow-diagram p-3">
+                                <div class="hash-step">Plain Text</div>
+                                <div class="hash-arrow"><i class="fas fa-arrow-down"></i><span class="hash-op">+ Salt</span></div>
+                                <div class="hash-step">bcrypt (2^12 = 4096 iterations)</div>
+                                <div class="hash-arrow"><i class="fas fa-arrow-down"></i></div>
+                                <div class="hash-step text-cyber-green">Irreversible Hash</div>
+                                <div class="hash-arrow"><i class="fas fa-times-circle text-danger"></i></div>
+                                <div class="hash-step text-danger">Cannot reverse</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Hash Generator -->
+        <div class="row g-4 mb-4">
+            <div class="col-12">
+                <div class="glass-card p-4">
+                    <h5 class="mb-3"><i class="fas fa-flask me-2 text-warning"></i>Live Hash Generator</h5>
+                    <p class="text-muted small mb-3">Type any text below to see its bcrypt hash generated in real-time.</p>
+                    <div class="row align-items-end g-3">
+                        <div class="col-md-8">
+                            <label class="form-label text-cyber-blue">Input Text</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control cyber-input" id="hashInput"
+                                       placeholder="Type anything to hash..." maxlength="72">
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePwd('hashInput','eyeHash')">
+                                    <i class="fas fa-eye" id="eyeHash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-cyber w-100" onclick="generateHash()">
+                                <i class="fas fa-cog me-2"></i>Generate bcrypt Hash
+                            </button>
+                        </div>
+                    </div>
+                    <div id="hashResult" class="mt-4" style="display:none;">
+                        <div class="hash-result-card p-3">
+                            <div class="mb-3">
+                                <span class="badge-label">Full bcrypt Hash</span>
+                                <code id="fullHashVal" class="hash-code mt-1"></code>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-sm-6 col-lg-3">
+                                    <div class="hash-component-card">
+                                        <div class="comp-label text-muted">Algorithm</div>
+                                        <div class="comp-val text-info" id="hashAlg"></div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6 col-lg-3">
+                                    <div class="hash-component-card">
+                                        <div class="comp-label text-muted">Cost Factor</div>
+                                        <div class="comp-val text-warning" id="hashCost"></div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6 col-lg-3">
+                                    <div class="hash-component-card">
+                                        <div class="comp-label text-muted">Iterations</div>
+                                        <div class="comp-val text-cyber-green" id="hashIter"></div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6 col-lg-3">
+                                    <div class="hash-component-card">
+                                        <div class="comp-label text-muted">Hash Length</div>
+                                        <div class="comp-val text-cyber-blue" id="hashLen"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row g-3 mt-1">
+                                <div class="col-md-6">
+                                    <div class="hash-component-card">
+                                        <div class="comp-label text-muted">Embedded Salt (22 chars)</div>
+                                        <code class="comp-code text-warning" id="hashSalt"></code>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="hash-component-card">
+                                        <div class="comp-label text-muted">Hash Portion (31 chars)</div>
+                                        <code class="comp-code text-cyber-green" id="hashPortion"></code>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Demo: Same Password → Different Hashes -->
+        <div class="row g-4 mb-4">
+            <div class="col-12">
+                <div class="glass-card p-4">
+                    <h5 class="mb-1"><i class="fas fa-random me-2 text-info"></i>Same Password → Different Hashes Every Time</h5>
+                    <p class="text-muted small mb-3">This is why rainbow table attacks fail — each hash has a unique embedded salt.</p>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <div class="hash-compare-row">
+                                <span class="badge-label me-2">Password:</span>
+                                <code class="text-warning">{{ demo.password }}</code>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="hash-component-card">
+                                <div class="comp-label text-muted mb-2">Hash #1</div>
+                                <code class="hash-code small">{{ demo.hash_1 }}</code>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="hash-component-card">
+                                <div class="comp-label text-muted mb-2">Hash #2</div>
+                                <code class="hash-code small">{{ demo.hash_2 }}</code>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="alert-box {% if demo.are_different %}alert-success-box{% endif %}">
+                                <i class="fas fa-info-circle me-2"></i>
+                                {{ demo.lesson }}
+                                <br><strong>Both verify correctly: {{ 'Yes ✅' if demo.both_verify else 'No ❌' }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Algorithm Comparison Table -->
+        <div class="row g-4 mb-5">
+            <div class="col-12">
+                <div class="glass-card p-4">
+                    <h5 class="mb-3"><i class="fas fa-table me-2 text-cyber-green"></i>Algorithm Security Comparison</h5>
+                    <div class="table-responsive">
+                        <table class="cyber-table table">
+                            <thead>
+                                <tr>
+                                    <th>Algorithm</th>
+                                    <th>Hash</th>
+                                    <th>Secure?</th>
+                                    <th>Est. Crack Time</th>
+                                    <th>Reason</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for algo in comparison.algorithms %}
+                                <tr class="{% if algo.secure %}row-secure{% else %}row-insecure{% endif %}">
+                                    <td><strong>{{ algo.name }}</strong></td>
+                                    <td><code class="small hash-snippet">{{ algo.hash[:32] }}…</code></td>
+                                    <td>
+                                        {% if algo.secure %}
+                                        <span class="badge bg-success"><i class="fas fa-check me-1"></i>Yes</span>
+                                        {% else %}
+                                        <span class="badge bg-danger"><i class="fas fa-times me-1"></i>No</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="{% if algo.secure %}text-cyber-green{% else %}text-danger{% endif %} fw-semibold">
+                                            {{ algo.crack_time }}
+                                        </span>
+                                    </td>
+                                    <td class="text-muted small">{{ algo.reason }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+{% endblock %}
+{% block extra_js %}
+<script>
+function generateHash() {
+    const pwd = document.getElementById('hashInput').value;
+    if (!pwd) { showToast('Please enter a value to hash.', 'warning'); return; }
+    const btn = document.querySelector('[onclick="generateHash()"]');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Hashing…';
+    fetch('/api/hash-password', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({password: pwd})
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.error) { showToast(data.error, 'danger'); return; }
+        document.getElementById('fullHashVal').textContent = data.hash;
+        document.getElementById('hashAlg').textContent = data.info.algorithm || '';
+        document.getElementById('hashCost').textContent = data.info.cost_factor || '';
+        document.getElementById('hashIter').textContent = (data.info.iterations || '').toLocaleString();
+        document.getElementById('hashLen').textContent = (data.info.total_length || '') + ' chars';
+        document.getElementById('hashSalt').textContent = data.info.salt || '';
+        document.getElementById('hashPortion').textContent = data.info.hash_portion || '';
+        document.getElementById('hashResult').style.display = 'block';
+        document.getElementById('hashResult').scrollIntoView({behavior:'smooth', block:'nearest'});
+    })
+    .catch(() => showToast('Error generating hash.', 'danger'))
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-cog me-2"></i>Generate bcrypt Hash';
+    });
+}
+document.getElementById('hashInput').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') generateHash();
+});
+</script>
+{% endblock %}

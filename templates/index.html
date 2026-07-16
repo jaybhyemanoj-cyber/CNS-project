@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% block title %}CynSecAnalyze — FinTech Password Security{% endblock %}
+{% block content %}
+
+<!-- Hero Section -->
+<section class="hero-section d-flex align-items-center min-vh-100">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-5 mb-lg-0">
+                <div class="hero-badge mb-3">
+                    <i class="fas fa-shield-alt me-2"></i>FinTech Security Suite
+                </div>
+                <h1 class="hero-title mb-4">
+                    Password Security
+                    <span class="text-gradient">Analyzer</span>
+                    <br>for FinTech Auth
+                </h1>
+                <p class="hero-subtitle mb-4">
+                    Understand how weak password policies fuel <strong>credential stuffing attacks</strong>
+                    in micro-lending platforms. Explore bcrypt hashing, MFA simulation, and live
+                    strength analysis — all using dummy data for education.
+                </p>
+                <div class="d-flex flex-wrap gap-3 mb-4">
+                    <a href="{{ url_for('register') }}" class="btn btn-cyber btn-lg">
+                        <i class="fas fa-user-plus me-2"></i>Get Started
+                    </a>
+                    <a href="{{ url_for('login') }}" class="btn btn-outline-cyber btn-lg">
+                        <i class="fas fa-sign-in-alt me-2"></i>Login
+                    </a>
+                    <a href="#features" class="btn btn-ghost btn-lg">
+                        <i class="fas fa-chevron-down me-2"></i>Learn More
+                    </a>
+                </div>
+                <!-- Quick Stats -->
+                <div class="d-flex flex-wrap gap-4">
+                    <div class="hero-stat">
+                        <span class="stat-num text-cyber-green">bcrypt</span>
+                        <span class="stat-label">Hashing</span>
+                    </div>
+                    <div class="hero-stat">
+                        <span class="stat-num text-cyber-blue">MFA</span>
+                        <span class="stat-label">Demo</span>
+                    </div>
+                    <div class="hero-stat">
+                        <span class="stat-num text-warning">100%</span>
+                        <span class="stat-label">Educational</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 d-flex justify-content-center">
+                <div class="hero-visual">
+                    <div class="shield-container">
+                        <div class="shield-ring ring-1"></div>
+                        <div class="shield-ring ring-2"></div>
+                        <div class="shield-ring ring-3"></div>
+                        <div class="shield-core">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                    </div>
+                    <!-- Floating cards -->
+                    <div class="float-card float-card-1 glass-card">
+                        <i class="fas fa-check-circle text-cyber-green me-2"></i>
+                        <span>bcrypt Hash</span>
+                    </div>
+                    <div class="float-card float-card-2 glass-card">
+                        <i class="fas fa-mobile-alt text-cyber-blue me-2"></i>
+                        <span>MFA Active</span>
+                    </div>
+                    <div class="float-card float-card-3 glass-card">
+                        <i class="fas fa-shield-alt text-warning me-2"></i>
+                        <span>Strong Policy</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Problem Statement -->
+<section class="py-5 mt-3" id="problem">
+    <div class="container">
+        <div class="section-heading text-center mb-5">
+            <span class="section-tag">Problem Statement</span>
+            <h2>The <span class="text-gradient">Credential Stuffing</span> Threat</h2>
+        </div>
+        <div class="row align-items-center g-4">
+            <div class="col-lg-6">
+                <div class="problem-card glass-card p-4">
+                    <div class="d-flex align-items-start mb-3">
+                        <div class="icon-badge icon-danger me-3"><i class="fas fa-exclamation-triangle"></i></div>
+                        <div>
+                            <h5 class="text-danger mb-1">The Attack Vector</h5>
+                            <p class="text-muted mb-0">A fintech micro-lending startup is experiencing fraudulent loan approvals through credential stuffing attacks. Attackers use leaked credential databases to systematically attempt logins.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="glass-card p-4">
+                    <h5 class="text-cyber-green mb-3"><i class="fas fa-bullseye me-2"></i>Project Objectives</h5>
+                    <ul class="objective-list">
+                        <li><i class="fas fa-check-circle text-cyber-green me-2"></i>Demonstrate live password strength analysis</li>
+                        <li><i class="fas fa-check-circle text-cyber-green me-2"></i>Showcase bcrypt adaptive hashing</li>
+                        <li><i class="fas fa-check-circle text-cyber-green me-2"></i>Run controlled offline password audit (dummy data)</li>
+                        <li><i class="fas fa-check-circle text-cyber-green me-2"></i>Simulate Multi-Factor Authentication flow</li>
+                        <li><i class="fas fa-check-circle text-cyber-green me-2"></i>Generate security reports with recommendations</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features -->
+<section class="py-5" id="features">
+    <div class="container">
+        <div class="section-heading text-center mb-5">
+            <span class="section-tag">What you'll explore</span>
+            <h2>Core <span class="text-gradient">Security Features</span></h2>
+        </div>
+        <div class="row g-4">
+            {% set features = [
+                ('fa-tachometer-alt','text-cyber-green','Live Strength Meter','Real-time password analysis with score, level, and actionable suggestions as you type.'),
+                ('fa-hashtag','text-cyber-blue','bcrypt Hash Demo','Visual breakdown of bcrypt structure — algorithm, cost factor, salt and hash components.'),
+                ('fa-search','text-warning','Offline Password Audit','Controlled audit of pre-seeded dummy accounts identifying weak passwords. No real data.'),
+                ('fa-chart-pie','text-info','Security Dashboard','Charts and KPI cards showing password distribution, MFA adoption, and security score.'),
+                ('fa-mobile-alt','text-success','MFA Simulation','Full login flow simulation: credentials → OTP verification → secure session.'),
+                ('fa-file-alt','text-danger','Report Generation','Comprehensive security audit PDF-style report with policy status and recommendations.'),
+            ] %}
+            {% for icon, color, title, desc in features %}
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card glass-card p-4 h-100">
+                    <div class="feature-icon-wrap mb-3">
+                        <i class="fas {{ icon }} {{ color }}"></i>
+                    </div>
+                    <h5 class="mb-2">{{ title }}</h5>
+                    <p class="text-muted mb-0 small">{{ desc }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="cta-card glass-card p-5 text-center">
+            <h3 class="mb-3">Ready to explore <span class="text-gradient">password security</span>?</h3>
+            <p class="text-muted mb-4">Create an account to access the full dashboard, hash demonstrations, and security reports.</p>
+            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                <a href="{{ url_for('register') }}" class="btn btn-cyber btn-lg">
+                    <i class="fas fa-rocket me-2"></i>Start Exploring
+                </a>
+                <a href="{{ url_for('login') }}" class="btn btn-outline-cyber btn-lg">
+                    <i class="fas fa-sign-in-alt me-2"></i>Login
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

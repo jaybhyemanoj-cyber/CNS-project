@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}Security Recommendations — CynSecAnalyze{% endblock %}
+{% block content %}
+<section class="pt-5 mt-4">
+    <div class="container-fluid px-4">
+        <div class="section-heading mb-4">
+            <h2 class="fw-bold"><i class="fas fa-lightbulb me-3 text-warning"></i>Authentication Recommendations</h2>
+            <p class="text-muted">Best practices to secure FinTech authentication systems against modern threats.</p>
+        </div>
+
+        <!-- Threat Context -->
+        <div class="row g-4 mb-4">
+            <div class="col-12">
+                <div class="glass-card p-4">
+                    <h5 class="text-danger mb-3"><i class="fas fa-crosshairs me-2"></i>Understanding the Threat Landscape</h5>
+                    <div class="row g-3">
+                        {% set threats = [
+                            ('fa-database','text-danger','Credential Stuffing','Attackers replay stolen username/password pairs from data breaches across multiple services, exploiting password reuse.'),
+                            ('fa-hammer','text-warning','Brute Force Attacks','Systematically trying all possible password combinations. Weak passwords fall in seconds with modern GPUs.'),
+                            ('fa-fish','text-info','Phishing','Social engineering attacks that trick users into revealing credentials on fake login pages.'),
+                            ('fa-key','text-cyber-green','Password Spraying','Trying a few common passwords against many accounts to avoid lockout triggers.'),
+                        ] %}
+                        {% for icon, color, title, desc in threats %}
+                        <div class="col-sm-6 col-lg-3">
+                            <div class="threat-card p-3 text-center h-100">
+                                <i class="fas {{ icon }} {{ color }} mb-2" style="font-size:2rem;"></i>
+                                <h6 class="mb-1">{{ title }}</h6>
+                                <p class="text-muted mb-0" style="font-size:0.78rem;">{{ desc }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recommendations -->
+        <div class="row g-4 mb-4">
+            {% set recs = [
+                ('fa-shield-alt','text-cyber-green','High','Use bcrypt with Cost ≥ 12',
+                    'bcrypt\'s adaptive cost factor makes it intentionally slow — as hardware gets faster, increase the cost factor to maintain security.',
+                    ['Cost 10: ~0.1s', 'Cost 12: ~0.3s', 'Cost 14: ~1.5s', 'Attackers need millions of attempts']),
+                ('fa-mobile-alt','text-cyber-blue','High','Enable Multi-Factor Authentication',
+                    'MFA adds a second verification layer, making credential stuffing attacks ineffective even when passwords are compromised.',
+                    ['TOTP apps (Authenticator)', 'SMS OTP (less secure)', 'Hardware keys (FIDO2)', 'Biometrics']),
+                ('fa-tachometer-alt','text-warning','High','Rate Limiting & Throttling',
+                    'Limit login attempts per IP/account to slow down automated attacks and make credential stuffing impractical.',
+                    ['10 req/min per IP', 'Exponential backoff', 'CAPTCHA after failures', 'IP reputation blocking']),
+                ('fa-lock','text-danger','High','Account Lockout Policy',
+                    'Automatically lock accounts after repeated failures. This makes brute-force impossible without triggering alerts.',
+                    ['Lock after 5 failures', '15-minute lockout', 'Notify user via email', 'Admin alert dashboard']),
+                ('fa-history','text-info','Medium','Password History Enforcement',
+                    'Prevent users from reusing recent passwords during password changes, stopping rotation-bypass attacks.',
+                    ['Store last 5 hashes', 'Never store plain text', 'Reject if match found', 'Apply on every change']),
+                ('fa-clock','text-success','Medium','Session Timeout & Security',
+                    'Proper session management prevents unauthorized access from abandoned sessions and session hijacking.',
+                    ['30-min idle timeout', 'HttpOnly cookies', 'SameSite=Lax flag', 'Secure flag for HTTPS']),
+                ('fa-user-graduate','text-warning','Medium','Consider Argon2 for New Systems',
+                    'Argon2 (PHC winner) provides memory-hard hashing, resistant to GPU/ASIC attacks. Superior to bcrypt for new implementations.',
+                    ['Memory-hard (defeats GPU)', 'PHC 2015 winner', 'Configurable time/memory', 'Argon2id recommended']),
+                ('fa-key','text-cyber-green','Low','Strong Password Policy',
+                    'Enforce password complexity at registration and change, preventing weak credentials from entering the system.',
+                    ['12+ characters minimum', 'Upper + lower + digits', 'Special characters', 'Common password blocklist']),
+            ] %}
+            {% for icon, color, priority, title, desc, bullets in recs %}
+            <div class="col-md-6 col-lg-4">
+                <div class="rec-card-full glass-card p-4 h-100 rec-priority-{{ priority | lower }}">
+                    <div class="d-flex align-items-start mb-3">
+                        <div class="rec-icon-lg {{ color.replace('text-','bg-').replace('-green','-green-dim').replace('-blue','-blue-dim') }} me-3">
+                            <i class="fas {{ icon }} {{ color }}"></i>
+                        </div>
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <h6 class="mb-0 fw-semibold">{{ title }}</h6>
+                            </div>
+                            <span class="priority-badge-full priority-{{ priority | lower }}">{{ priority }} Priority</span>
+                        </div>
+                    </div>
+                    <p class="text-muted small mb-3">{{ desc }}</p>
+                    <ul class="rec-bullets">
+                        {% for b in bullets %}
+                        <li><i class="fas fa-chevron-right text-cyber-green me-2 small"></i>{{ b }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- MFA Flow Visualization -->
+        <div class="row g-4 mb-5">
+            <div class="col-12">
+                <div class="glass-card p-4">
+                    <h5 class="mb-4 text-cyber-blue"><i class="fas fa-project-diagram me-2"></i>MFA Authentication Flow</h5>
+                    <div class="mfa-flow-full d-flex align-items-center justify-content-center flex-wrap gap-2">
+                        {% set steps = [
+                            ('fa-user','text-cyber-blue','1. Username'),
+                            ('fa-lock','text-warning','2. Password'),
+                            ('fa-shield-check','text-cyber-green','3. bcrypt Verify'),
+                            ('fa-mobile-alt','text-info','4. OTP Prompt'),
+                            ('fa-check-circle','text-success','5. Verify OTP'),
+                            ('fa-tachometer-alt','text-cyber-green','6. Dashboard'),
+                        ] %}
+                        {% for icon, color, label in steps %}
+                        <div class="mfa-step-full text-center">
+                            <div class="mfa-step-icon {{ color }}"><i class="fas {{ icon }}"></i></div>
+                            <div class="mfa-step-label small text-muted mt-1">{{ label }}</div>
+                        </div>
+                        {% if not loop.last %}
+                        <i class="fas fa-arrow-right text-muted flow-arrow"></i>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+{% endblock %}

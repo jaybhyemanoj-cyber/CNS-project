@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+{% block title %}Security Dashboard — CynSecAnalyze{% endblock %}
+{% block content %}
+<section class="dashboard-section pt-5 mt-4">
+    <div class="container-fluid px-4">
+
+        <!-- Header -->
+        <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+            <div>
+                <h2 class="mb-1 fw-bold">Security Dashboard</h2>
+                <p class="text-muted mb-0 small">Welcome back, <strong class="text-cyber-green">{{ username }}</strong> — Here's your security overview.</p>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="{{ url_for('audit') }}" class="btn btn-outline-warning btn-sm"><i class="fas fa-search me-1"></i>Run Audit</a>
+                <a href="{{ url_for('report') }}" class="btn btn-outline-info btn-sm"><i class="fas fa-file-alt me-1"></i>Full Report</a>
+                <form method="POST" action="{{ url_for('toggle_mfa') }}" class="d-inline">
+                    <button type="submit" class="btn btn-outline-cyber btn-sm">
+                        <i class="fas fa-mobile-alt me-1"></i>Toggle MFA
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="row g-4 mb-4">
+            {% set cards = [
+                ('fa-users','text-cyber-blue','Total Users', total_users, 'bg-cyber-blue-dim'),
+                ('fa-user-plus','text-cyber-green','Registered Today', today_count, 'bg-cyber-green-dim'),
+                ('fa-exclamation-triangle','text-danger','Weak Passwords', weak_count, 'bg-danger-dim'),
+                ('fa-shield-alt','text-success','Strong Passwords', strong_count, 'bg-success-dim'),
+                ('fa-mobile-alt','text-info','MFA Enabled', mfa_enabled, 'bg-info-dim'),
+                ('fa-tachometer-alt','text-warning','Security Score', security_score ~ '%', 'bg-warning-dim'),
+            ] %}
+            {% for icon, color, label, value, bg in cards %}
+            <div class="col-6 col-md-4 col-xl-2">
+                <div class="kpi-card glass-card p-3 text-center h-100">
+                    <div class="kpi-icon {{ bg }} mb-2"><i class="fas {{ icon }} {{ color }}"></i></div>
+                    <div class="kpi-value">{{ value }}</div>
+                    <div class="kpi-label text-muted small">{{ label }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Security Score Progress -->
+        <div class="row g-4 mb-4">
+            <div class="col-12">
+                <div class="glass-card p-4">
+                    <h5 class="mb-3"><i class="fas fa-tachometer-alt me-2 text-warning"></i>Overall Security Score</h5>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="flex-grow-1">
+                            <div class="security-progress-track">
+                                <div class="security-progress-fill" id="secProgressFill"
+                                     style="width: 0%"
+                                     data-target="{{ security_score }}"></div>
+                            </div>
+                            <div class="d-flex justify-content-between mt-1">
+                                <small class="text-muted">0 — Critical</small>
+                                <small class="text-muted">100 — Excellent</small>
+                            </div>
+                        </div>
+                        <div class="score-badge {% if security_score >= 75 %}score-good{% elif security_score >= 50 %}score-medium{% else %}score-poor{% endif %}">
+                            {{ security_score }}%
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="row g-4 mb-4">
+            <!-- Pie Chart -->
+            <div class="col-lg-5">
+                <div class="glass-card p-4 h-100">
+                    <h5 class="mb-3"><i class="fas fa-chart-pie me-2 text-cyber-blue"></i>Password Strength Distribution</h5>
+                    <div class="chart-container" style="position:relative;height:280px;">
+                        <canvas id="pieChart"></canvas>
+                    </div>
+                    <div class="chart-legend mt-3">
+                        <span class="legend-item"><span class="legend-dot bg-danger"></span>Weak ({{ weak_count }})</span>
+                        <span class="legend-item"><span class="legend-dot bg-warning"></span>Medium ({{ medium_count }})</span>
+                        <span class="legend-item"><span class="legend-dot bg-info"></span>Strong ({{ strong_count - very_strong_count }})</span>
+                        <span class="legend-item"><span class="legend-dot bg-success"></span>Very Strong ({{ very_strong_count }})</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Bar Chart -->
+            <div class="col-lg-7">
+                <div class="glass-card p-4 h-100">
+                    <h5 class="mb-3"><i class="fas fa-chart-bar me-2 text-cyber-green"></i>Security Metrics Overview</h5>
+                    <div class="chart-container" style="position:relative;height:280px;">
+                        <canvas id="barChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tips & Recommendations Row -->
+        <div class="row g-4 mb-5">
+            <div class="col-lg-6">
+                <div class="glass-card p-4 h-100">
+                    <h5 class="mb-3"><i class="fas fa-lightbulb me-2 text-warning"></i>Security Tips</h5>
+                    <div class="tips-list">
+                        <div class="tip-item"><i class="fas fa-check-circle text-cyber-green me-2"></i>Use bcrypt with cost factor ≥ 12</div>
+                        <div class="tip-item"><i class="fas fa-check-circle text-cyber-green me-2"></i>Enable MFA on all privileged accounts</div>
+                        <div class="tip-item"><i class="fas fa-check-circle text-cyber-green me-2"></i>Apply rate limiting on auth endpoints</div>
+                        <div class="tip-item"><i class="fas fa-check-circle text-cyber-green me-2"></i>Lock accounts after 5 failed attempts</div>
+                        <div class="tip-item"><i class="fas fa-check-circle text-cyber-green me-2"></i>Use 30-minute session timeout</div>
+                        <div class="tip-item"><i class="fas fa-check-circle text-cyber-green me-2"></i>Never store passwords in plain text</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="glass-card p-4 h-100">
+                    <h5 class="mb-3"><i class="fas fa-exclamation-circle me-2 text-danger"></i>Credential Stuffing Risk</h5>
+                    <p class="text-muted small mb-3">
+                        Credential stuffing attacks use leaked username/password pairs from data breaches to automatically
+                        attempt logins across multiple services. Weak passwords dramatically increase risk.
+                    </p>
+                    <div class="attack-stat-grid">
+                        <div class="attack-stat">
+                            <div class="attack-num text-danger">{{ weak_count }}</div>
+                            <div class="attack-lbl text-muted small">Vulnerable Accounts</div>
+                        </div>
+                        <div class="attack-stat">
+                            <div class="attack-num text-warning">{{ mfa_enabled }}</div>
+                            <div class="attack-lbl text-muted small">MFA Protected</div>
+                        </div>
+                        <div class="attack-stat">
+                            <div class="attack-num text-cyber-green">{{ strong_count }}</div>
+                            <div class="attack-lbl text-muted small">Strong Passwords</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Animate progress bar
+window.addEventListener('load', () => {
+    const fill = document.getElementById('secProgressFill');
+    if (fill) {
+        setTimeout(() => {
+            fill.style.width = fill.dataset.target + '%';
+        }, 300);
+    }
+});
+
+// Pie Chart
+const pieCtx = document.getElementById('pieChart').getContext('2d');
+new Chart(pieCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Weak', 'Medium', 'Strong', 'Very Strong'],
+        datasets: [{
+            data: [{{ weak_count }}, {{ medium_count }}, {{ strong_count - very_strong_count }}, {{ very_strong_count }}],
+            backgroundColor: ['rgba(220,53,69,0.85)', 'rgba(255,193,7,0.85)', 'rgba(13,202,240,0.85)', 'rgba(25,135,84,0.85)'],
+            borderColor: ['#dc3545', '#ffc107', '#0dcaf0', '#198754'],
+            borderWidth: 2,
+            hoverOffset: 8
+        }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false, cutout: '65%',
+        plugins: { legend: { display: false },
+            tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed}` }}
+        }
+    }
+});
+
+// Bar Chart
+const barCtx = document.getElementById('barChart').getContext('2d');
+new Chart(barCtx, {
+    type: 'bar',
+    data: {
+        labels: ['Total Users', 'Weak Passwords', 'Strong Passwords', 'MFA Enabled', 'Registered Today'],
+        datasets: [{
+            label: 'Count',
+            data: [{{ total_users }}, {{ weak_count }}, {{ strong_count }}, {{ mfa_enabled }}, {{ today_count }}],
+            backgroundColor: ['rgba(13,110,253,0.7)', 'rgba(220,53,69,0.7)', 'rgba(25,135,84,0.7)', 'rgba(13,202,240,0.7)', 'rgba(108,117,125,0.7)'],
+            borderColor: ['#0d6efd', '#dc3545', '#198754', '#0dcaf0', '#6c757d'],
+            borderWidth: 2, borderRadius: 6
+        }]
+    },
+    options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, ticks: { color: '#adb5bd', stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.05)' } },
+            x: { ticks: { color: '#adb5bd', maxRotation: 30 }, grid: { display: false } }
+        }
+    }
+});
+</script>
+{% endblock %}

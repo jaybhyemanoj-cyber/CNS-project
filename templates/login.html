@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Login — CynSecAnalyze{% endblock %}
+{% block content %}
+<section class="auth-section d-flex align-items-center min-vh-100 pt-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-5 col-md-7">
+                <div class="auth-card glass-card p-4 p-md-5">
+                    <div class="text-center mb-4">
+                        <div class="auth-icon mb-3"><i class="fas fa-sign-in-alt"></i></div>
+                        <h2 class="fw-bold mb-1">Secure Login</h2>
+                        <p class="text-muted small">Verified using bcrypt — constant-time comparison.</p>
+                    </div>
+
+                    <form method="POST" action="{{ url_for('login') }}" id="loginForm">
+                        <div class="mb-3">
+                            <label class="form-label text-cyber-blue"><i class="fas fa-user me-2"></i>Username</label>
+                            <input type="text" class="form-control cyber-input" name="username"
+                                   id="username" placeholder="Your username" required autocomplete="username">
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label text-cyber-blue"><i class="fas fa-lock me-2"></i>Password</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control cyber-input" name="password"
+                                       id="password" placeholder="Your password" required autocomplete="current-password">
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePwd('password','eyeLogin')">
+                                    <i class="fas fa-eye" id="eyeLogin"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-cyber w-100 btn-lg">
+                            <i class="fas fa-arrow-right me-2"></i>Login to Dashboard
+                        </button>
+                    </form>
+
+                    <!-- MFA Info -->
+                    <div class="info-box mt-4 p-3">
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-mobile-alt text-cyber-blue me-3 mt-1"></i>
+                            <div>
+                                <p class="mb-0 small text-muted">
+                                    If MFA is enabled on your account, you'll be directed to an OTP verification
+                                    step after login. The OTP will be displayed on screen (demo mode).
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Security note -->
+                    <div class="security-notes">
+                        <h6 class="text-muted small mb-2"><i class="fas fa-info-circle me-1"></i>Security Notes</h6>
+                        <ul class="small text-muted ps-3 mb-0">
+                            <li>Accounts lock after 5 failed attempts (15 min)</li>
+                            <li>Sessions expire after 30 minutes of inactivity</li>
+                            <li>Passwords verified using constant-time bcrypt</li>
+                        </ul>
+                    </div>
+
+                    <p class="text-center text-muted small mt-4 mb-0">
+                        No account yet? <a href="{{ url_for('register') }}" class="text-cyber-green fw-semibold">Register here</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

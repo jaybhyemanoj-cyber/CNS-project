@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}Security Report — CynSecAnalyze{% endblock %}
+{% block content %}
+<section class="pt-5 mt-4">
+    <div class="container-fluid px-4">
+        <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+            <div>
+                <h2 class="fw-bold"><i class="fas fa-file-alt me-3 text-info"></i>Security Assessment Report</h2>
+                <p class="text-muted mb-0 small">Generated: <strong>{{ report.generated_at }}</strong></p>
+            </div>
+            <button onclick="window.print()" class="btn btn-outline-info btn-sm">
+                <i class="fas fa-print me-1"></i>Print Report
+            </button>
+        </div>
+
+        <!-- Executive Summary -->
+        <div class="row g-4 mb-4">
+            <div class="col-12">
+                <div class="glass-card p-4">
+                    <h5 class="text-cyber-green mb-3"><i class="fas fa-chart-line me-2"></i>Executive Summary</h5>
+                    <div class="row g-3">
+                        <div class="col-sm-4 col-md-2">
+                            <div class="report-stat text-center">
+                                <div class="rs-val">{{ report.total_users }}</div>
+                                <div class="rs-lbl">Total Users</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-4 col-md-2">
+                            <div class="report-stat text-center">
+                                <div class="rs-val text-danger">{{ report.password_stats.weak }}</div>
+                                <div class="rs-lbl">Weak Passwords</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-4 col-md-2">
+                            <div class="report-stat text-center">
+                                <div class="rs-val text-success">{{ report.password_stats.strong }}</div>
+                                <div class="rs-lbl">Strong Passwords</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-4 col-md-2">
+                            <div class="report-stat text-center">
+                                <div class="rs-val text-info">{{ report.mfa_stats.enabled }}</div>
+                                <div class="rs-lbl">MFA Enabled</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-4 col-md-2">
+                            <div class="report-stat text-center">
+                                <div class="rs-val text-{{ report.security_score.color }}">{{ report.security_score.score }}</div>
+                                <div class="rs-lbl">Security Score</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-4 col-md-2">
+                            <div class="report-stat text-center">
+                                <div class="rs-val rs-grade text-{{ report.security_score.color }}">{{ report.security_score.grade }}</div>
+                                <div class="rs-lbl">Grade</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Two Column: Policy + Hash -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-6">
+                <div class="glass-card p-4 h-100">
+                    <h5 class="mb-3"><i class="fas fa-clipboard-check me-2 text-warning"></i>Password Policy Status</h5>
+                    <div class="policy-list">
+                        {% for key, val in report.policy_status.items() %}
+                        <div class="policy-item d-flex align-items-center justify-content-between">
+                            <span class="text-muted small">{{ key.replace('_', ' ').title() }}</span>
+                            {% if val %}
+                            <span class="badge bg-success"><i class="fas fa-check me-1"></i>Active</span>
+                            {% else %}
+                            <span class="badge bg-danger"><i class="fas fa-times me-1"></i>Inactive</span>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="glass-card p-4 h-100">
+                    <h5 class="mb-3"><i class="fas fa-hashtag me-2 text-cyber-green"></i>Password Hash & MFA Details</h5>
+                    <div class="detail-rows">
+                        <div class="detail-row"><span class="dr-label">Hash Algorithm</span><span class="dr-val text-cyber-green">{{ report.hash_algorithm }}</span></div>
+                        <div class="detail-row"><span class="dr-label">Registered Today</span><span class="dr-val text-cyber-blue">{{ report.registered_today }}</span></div>
+                        <div class="detail-row"><span class="dr-label">Weak Password %</span><span class="dr-val text-{{ 'danger' if report.password_stats.weak_percentage > 20 else 'warning' }}">{{ report.password_stats.weak_percentage }}%</span></div>
+                        <div class="detail-row"><span class="dr-label">MFA Adoption Rate</span><span class="dr-val text-info">{{ report.mfa_stats.percentage }}%</span></div>
+                        <div class="detail-row"><span class="dr-label">MFA Disabled</span><span class="dr-val text-muted">{{ report.mfa_stats.disabled }}</span></div>
+                    </div>
+                    <h6 class="mt-4 mb-2 text-warning"><i class="fas fa-user-secret me-2"></i>Dummy Account Audit</h6>
+                    <div class="detail-rows">
+                        <div class="detail-row"><span class="dr-label">Total Dummy Accounts</span><span class="dr-val">{{ report.dummy_audit.total }}</span></div>
+                        <div class="detail-row"><span class="dr-label">Flagged as Weak</span><span class="dr-val text-danger">{{ report.dummy_audit.weak }}</span></div>
+                        <div class="detail-row"><span class="dr-label">Weak Percentage</span><span class="dr-val text-warning">{{ report.dummy_audit.weak_percentage }}%</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recommendations -->
+        <div class="row g-4 mb-5">
+            <div class="col-12">
+                <div class="glass-card p-4">
+                    <h5 class="mb-4"><i class="fas fa-lightbulb me-2 text-warning"></i>Security Recommendations</h5>
+                    <div class="row g-3">
+                        {% for rec in report.recommendations %}
+                        <div class="col-md-6 col-lg-4">
+                            <div class="rec-card p-3 h-100 priority-{{ rec.priority | lower }}">
+                                <div class="d-flex align-items-start">
+                                    <div class="rec-icon me-3"><i class="fas fa-{{ rec.icon }}"></i></div>
+                                    <div>
+                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                            <h6 class="mb-0 small fw-semibold">{{ rec.title }}</h6>
+                                            <span class="rec-priority priority-badge-{{ rec.priority | lower }}">{{ rec.priority }}</span>
+                                        </div>
+                                        <p class="text-muted mb-0" style="font-size:0.78rem;">{{ rec.description }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+{% endblock %}

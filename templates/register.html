@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% block title %}Register — CynSecAnalyze{% endblock %}
+{% block content %}
+<section class="auth-section d-flex align-items-center min-vh-100 pt-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-6 col-md-8">
+                <div class="auth-card glass-card p-4 p-md-5">
+                    <div class="text-center mb-4">
+                        <div class="auth-icon mb-3"><i class="fas fa-user-shield"></i></div>
+                        <h2 class="fw-bold mb-1">Create Account</h2>
+                        <p class="text-muted small">Passwords are hashed with bcrypt — never stored in plain text.</p>
+                    </div>
+
+                    <form method="POST" action="{{ url_for('register') }}" id="registerForm" novalidate>
+
+                        <!-- Username -->
+                        <div class="mb-3">
+                            <label class="form-label text-cyber-blue"><i class="fas fa-user me-2"></i>Username</label>
+                            <input type="text" class="form-control cyber-input" name="username"
+                                   id="username" placeholder="e.g. john_fintech"
+                                   value="{{ username or '' }}" required minlength="3" autocomplete="username">
+                        </div>
+
+                        <!-- Email -->
+                        <div class="mb-3">
+                            <label class="form-label text-cyber-blue"><i class="fas fa-envelope me-2"></i>Email</label>
+                            <input type="email" class="form-control cyber-input" name="email"
+                                   id="email" placeholder="you@example.com"
+                                   value="{{ email or '' }}" required autocomplete="email">
+                        </div>
+
+                        <!-- Password -->
+                        <div class="mb-3">
+                            <label class="form-label text-cyber-blue"><i class="fas fa-lock me-2"></i>Password</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control cyber-input" name="password"
+                                       id="password" placeholder="Minimum 12 characters"
+                                       required autocomplete="new-password" oninput="checkLiveStrength(this.value)">
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePwd('password','eyeIcon1')">
+                                    <i class="fas fa-eye" id="eyeIcon1"></i>
+                                </button>
+                            </div>
+
+                            <!-- Live Strength Meter -->
+                            <div class="strength-meter mt-2" id="strengthMeter" style="display:none;">
+                                <div class="strength-bar-track">
+                                    <div class="strength-bar-fill" id="strengthBarFill"></div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mt-1">
+                                    <small id="strengthLabel" class="fw-semibold"></small>
+                                    <small id="strengthScore" class="text-muted"></small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Password Requirements -->
+                        <div class="requirement-grid mb-3" id="reqGrid" style="display:none;">
+                            <div class="req-item" id="req-length"><i class="fas fa-times-circle me-1"></i>12+ characters</div>
+                            <div class="req-item" id="req-upper"><i class="fas fa-times-circle me-1"></i>Uppercase (A-Z)</div>
+                            <div class="req-item" id="req-lower"><i class="fas fa-times-circle me-1"></i>Lowercase (a-z)</div>
+                            <div class="req-item" id="req-digit"><i class="fas fa-times-circle me-1"></i>Number (0-9)</div>
+                            <div class="req-item" id="req-special"><i class="fas fa-times-circle me-1"></i>Special char</div>
+                            <div class="req-item" id="req-common"><i class="fas fa-times-circle me-1"></i>Not common</div>
+                        </div>
+
+                        <!-- Suggestions -->
+                        <div id="strengthSuggestions" class="suggestion-box mb-3" style="display:none;"></div>
+
+                        <!-- Confirm Password -->
+                        <div class="mb-4">
+                            <label class="form-label text-cyber-blue"><i class="fas fa-lock me-2"></i>Confirm Password</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control cyber-input" name="confirm_password"
+                                       id="confirmPassword" placeholder="Repeat your password"
+                                       required autocomplete="new-password">
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePwd('confirmPassword','eyeIcon2')">
+                                    <i class="fas fa-eye" id="eyeIcon2"></i>
+                                </button>
+                            </div>
+                            <div id="confirmMsg" class="small mt-1"></div>
+                        </div>
+
+                        <button type="submit" class="btn btn-cyber w-100 btn-lg" id="submitBtn">
+                            <i class="fas fa-user-plus me-2"></i>Create Secure Account
+                        </button>
+                    </form>
+
+                    <hr class="my-4">
+                    <p class="text-center text-muted small mb-0">
+                        Already have an account? <a href="{{ url_for('login') }}" class="text-cyber-green fw-semibold">Login here</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let strengthTimeout;
+
+function checkLiveStrength(pwd) {
+    clearTimeout(strengthTimeout);
+    document.getElementById('reqGrid').style.display = pwd.length > 0 ? 'grid' : 'none';
+    document.getElementById('strengthMeter').style.display = pwd.length > 0 ? 'block' : 'none';
+    if (!pwd) {
+        document.getElementById('strengthSuggestions').style.display = 'none';
+        return;
+    }
+    strengthTimeout = setTimeout(() => {
+        fetch('/api/check-password', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({password: pwd})
+        })
+        .then(r => r.json())
+        .then(data => updateStrengthUI(data));
+    }, 250);
+}
+
+function updateStrengthUI(data) {
+    const fill = document.getElementById('strengthBarFill');
+    const label = document.getElementById('strengthLabel');
+    const score = document.getElementById('strengthScore');
+    const suggestions = document.getElementById('strengthSuggestions');
+    const checks = data.checks || {};
+
+    fill.style.width = data.score + '%';
+    fill.className = 'strength-bar-fill';
+    const colors = {'Weak':'danger','Medium':'warning','Strong':'info','Very Strong':'success'};
+    fill.classList.add('bg-' + (colors[data.level] || 'secondary'));
+    label.textContent = data.level;
+    label.className = 'fw-semibold text-' + (colors[data.level] || 'muted');
+    score.textContent = data.score + '/100';
+
+    // Update requirement items
+    updateReq('req-length', checks.length);
+    updateReq('req-upper', checks.uppercase);
+    updateReq('req-lower', checks.lowercase);
+    updateReq('req-digit', checks.digit);
+    updateReq('req-special', checks.special);
+    updateReq('req-common', checks.not_common);
+
+    if (data.suggestions && data.suggestions.length > 0) {
+        suggestions.style.display = 'block';
+        suggestions.innerHTML = '<ul class="mb-0">' +
+            data.suggestions.map(s => `<li class="small">${s}</li>`).join('') + '</ul>';
+    } else {
+        suggestions.style.display = 'none';
+    }
+}
+
+function updateReq(id, ok) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const icon = el.querySelector('i');
+    if (ok) {
+        icon.className = 'fas fa-check-circle me-1 text-cyber-green';
+        el.classList.add('req-ok');
+        el.classList.remove('req-fail');
+    } else {
+        icon.className = 'fas fa-times-circle me-1 text-danger';
+        el.classList.add('req-fail');
+        el.classList.remove('req-ok');
+    }
+}
+
+document.getElementById('confirmPassword').addEventListener('input', function() {
+    const pwd = document.getElementById('password').value;
+    const confirm = this.value;
+    const msg = document.getElementById('confirmMsg');
+    if (!confirm) { msg.textContent = ''; return; }
+    if (pwd === confirm) {
+        msg.innerHTML = '<span class="text-cyber-green"><i class="fas fa-check-circle me-1"></i>Passwords match</span>';
+    } else {
+        msg.innerHTML = '<span class="text-danger"><i class="fas fa-times-circle me-1"></i>Passwords do not match</span>';
+    }
+});
+</script>
+{% endblock %}
